@@ -1,10 +1,10 @@
 package com.ext.kernelmanager.presentation.screens.dashboard
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +39,7 @@ fun DashboardScreen(
                 SummaryStat("Voltage", "%.2f V".format(t.battery.voltage), Icons.Default.Settings, Color(0xFF90A4AE)),
                 SummaryStat("Internal", "${t.battery.temperature.toInt()}°C", Icons.Default.Settings, Color(0xFFFFAB91))
             )))
+            list.add(MemoryMapWidget(t.memory))
         }
         list.sortedBy { it.priority }
     }
@@ -49,8 +50,8 @@ fun DashboardScreen(
             LargeTopAppBar(
                 title = { 
                     Column {
-                        Text("Overview", fontWeight = FontWeight.Bold)
-                        Text("System status and telemetry", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Dashboard", fontWeight = FontWeight.Bold)
+                        Text("Live system analytics", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -74,6 +75,44 @@ fun DashboardScreen(
                 }
                 item { Spacer(modifier = Modifier.height(32.dp)) }
             }
+        }
+    }
+}
+
+class MemoryMapWidget(private val mem: com.ext.kernelmanager.domain.model.telemetry.MemoryTelemetry) : InstrumentWidget {
+    override val title: String = "Memory"
+    override val priority: Int = 30
+
+    @Composable
+    override fun Render(modifier: Modifier) {
+        ElevatedCard(modifier = modifier, shape = RoundedCornerShape(24.dp)) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(title.uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                val usagePercent by animateFloatAsState(targetValue = mem.usagePercent)
+                LinearProgressIndicator(
+                    progress = usagePercent,
+                    modifier = Modifier.fillMaxWidth().height(8.dp),
+                    strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Metric("Total", "${mem.total} MB")
+                    Metric("Used", "${(mem.total - mem.available)} MB")
+                    Metric("Cached", "${mem.cached} MB")
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun Metric(label: String, value: String) {
+        Column {
+            Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
         }
     }
 }
