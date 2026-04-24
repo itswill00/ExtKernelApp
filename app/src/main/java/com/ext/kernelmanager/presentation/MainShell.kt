@@ -22,7 +22,7 @@ import com.ext.kernelmanager.presentation.screens.explorer.ui.ExplorerScreen
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
-    object Dashboard : Screen("dashboard", "Topology", Icons.Default.Home)
+    object Dashboard : Screen("dashboard", "Dashboard", Icons.Default.Home)
     object Technical : Screen("technical", "Instrumentation", Icons.Default.Info)
     object Memory : Screen("memory", "Memory", Icons.Default.List)
     object Battery : Screen("battery", "Power", Icons.Default.Favorite)

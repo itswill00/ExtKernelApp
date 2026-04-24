@@ -67,7 +67,7 @@ fun ExplorerScreen(
                             headlineContent = { Text(item.name, style = MaterialTheme.typography.bodyMedium) },
                             leadingContent = { 
                                 Icon(
-                                    if (item.isDirectory) Icons.Default.Folder else Icons.Default.Article, 
+                                    if (item.isDirectory) Icons.Default.List else Icons.Default.List, 
                                     contentDescription = null,
                                     tint = if (item.isDirectory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier.size(24.dp)

@@ -7,10 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -62,30 +59,48 @@ fun DashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Main Status Card
+            // Main Identity
             IdentityCard(
                 model = state.deviceIdentity?.model ?: "Gathering information...",
-                kernel = state.deviceIdentity?.kernel ?: "Scanning kernel..."
+                kernel = state.deviceIdentity?.kernel ?: "Scanning kernel...",
+                isRooted = state.isRooted,
+                uptime = state.uptime
             )
 
-            // Dynamic Stats Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            // Live Performance Metrics
+            Text("HARDWARE STATUS", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    label = "CPU Speed",
+                    label = "CPU CLOCK",
                     value = state.cpuFreq,
                     icon = Icons.Default.Settings,
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    label = "Thermal",
-                    value = state.temperature,
-                    icon = Icons.Default.Thermostat,
+                    label = "GPU CLOCK",
+                    value = state.gpuFreq,
+                    icon = Icons.Default.Build,
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    label = "THERMAL",
+                    value = state.temperature,
+                    icon = Icons.Default.Settings,
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                )
+                StatCard(
+                    modifier = Modifier.weight(1f),
+                    label = "BATTERY",
+                    value = "${state.batteryCapacity}%",
+                    icon = Icons.Default.Favorite,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             }
 
@@ -101,53 +116,49 @@ fun DashboardScreen(
 }
 
 @Composable
-fun IdentityCard(model: String, kernel: String) {
+fun IdentityCard(model: String, kernel: String, isRooted: Boolean, uptime: String) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    color = (if (isRooted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error).copy(alpha = 0.1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
-                        Icons.Default.Info, 
+                        if (isRooted) Icons.Default.CheckCircle else Icons.Default.Info, 
                         contentDescription = null, 
                         modifier = Modifier.padding(8.dp).size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = if (isRooted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
+                    Text(model, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
                     Text(
-                        model,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Text(
-                        "Hardware platform",
+                        if (isRooted) "Privileged Access Active" else "Limited System Access",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isRooted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                     )
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                "Kernel Version",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                kernel,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("KERNEL", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text(kernel.split("-").first(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("UPTIME", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text(uptime, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
@@ -163,26 +174,13 @@ fun StatCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor.copy(alpha = 0.6f))
+        colors = CardDefaults.cardColors(containerColor = containerColor.copy(alpha = 0.4f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Icon(
-                icon, 
-                contentDescription = null, 
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
+            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -192,48 +190,23 @@ fun MemoryCard(usagePercent: Float, usageText: String) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Memory Footprint",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Icon(
-                    Icons.Default.Memory, 
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Memory Footprint", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Icon(Icons.Default.List, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(modifier = Modifier.height(16.dp))
-            
             val animatedProgress by animateFloatAsState(targetValue = usagePercent)
-            
             LinearProgressIndicator(
                 progress = animatedProgress,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp),
+                modifier = Modifier.fillMaxWidth().height(8.dp),
                 strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                usageText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 20.sp
-            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(usageText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -63,6 +63,31 @@ class HardwareDetector {
     }
 
     /**
+     * Reads battery percentage and health.
+     */
+    suspend fun getBatteryInfo(): Pair<Int, String> {
+        val capacity = RootShellManager.execute("cat /sys/class/power_supply/battery/capacity")
+            .let { if (it is RootResult.Success) it.output.trim().toIntOrNull() ?: 0 else 0 }
+        val health = RootShellManager.execute("cat /sys/class/power_supply/battery/health")
+            .let { if (it is RootResult.Success) it.output.trim() else "Unknown" }
+        return Pair(capacity, health)
+    }
+
+    /**
+     * Calculates system uptime in a human-readable format.
+     */
+    suspend fun getUptime(): String {
+        val result = RootShellManager.execute("cat /proc/uptime")
+        if (result is RootResult.Success) {
+            val uptimeSeconds = result.output.split(" ")[0].toDoubleOrNull()?.toLong() ?: 0L
+            val hours = uptimeSeconds / 3600
+            val minutes = (uptimeSeconds % 3600) / 60
+            return "${hours}h ${minutes}m"
+        }
+        return "N/A"
+    }
+
+    /**
      * Reads CPU information (Max Frequency) securely.
      * Uses dynamic path discovery strategy (Auto-Detect).
      */

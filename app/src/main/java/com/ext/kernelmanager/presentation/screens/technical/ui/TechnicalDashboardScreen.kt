@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -100,7 +99,7 @@ fun ClusterInstrument(cluster: CpuClusterState) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.Speed, 
+                        Icons.Default.Settings, 
                         contentDescription = null, 
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
@@ -167,7 +166,7 @@ fun GpuInstrument(gpu: GpuState) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.DeveloperBoard, 
+                        Icons.Default.Build, 
                         contentDescription = null, 
                         tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(20.dp)

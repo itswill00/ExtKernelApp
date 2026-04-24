@@ -8,32 +8,34 @@ BUILD_LOG="build.log"
 
 send_msg() {
     local msg=$1
+    echo "Sending message..."
     curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" \
         -d "chat_id=$CHAT_ID" \
         -d "parse_mode=Markdown" \
-        -d "text=$msg" > /dev/null
+        -d "text=$msg"
 }
 
 send_file() {
     local file_path=$1
     local caption=$2
+    echo "Sending file: $file_path"
     curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendDocument" \
         -F "chat_id=$CHAT_ID" \
         -F "document=@$file_path" \
         -F "caption=$caption" \
-        -F "parse_mode=Markdown" > /dev/null
+        -F "parse_mode=Markdown"
 }
 
 # 1. Notify Build Started
 START_TIME=$(date +%s)
 send_msg "🚀 *Build Started:* $PROJECT_NAME
-📅 Tanggal: $(date '+%d %b %Y, %H:%M:%S')
-🛠 Status: Menyiapkan lingkungan build..."
+📅 Date: $(date '+%d %b %Y, %H:%M:%S')
+🛠 Status: Preparing build environment..."
 
 # 2. Run Gradle Build
 echo "Starting build..."
 chmod +x gradlew
-./gradlew clean assembleDebug > $BUILD_LOG 2>&1
+./gradlew assembleDebug > $BUILD_LOG 2>&1
 
 if [ $? -eq 0 ]; then
     # Success
@@ -46,7 +48,7 @@ if [ $? -eq 0 ]; then
         send_file "$APK_PATH" "✅ *Build Success!*
 📦 *Project:* $PROJECT_NAME
 ⏱ *Duration:* ${DURATION}s
-📱 *Type:* Debug APK (Enterprise Edition)
+📱 *Type:* Debug APK (Hardware Edition)
 🔒 *Security:* All modules verified."
     else
         send_msg "⚠️ *Build Success* but APK not found in $APK_PATH"
@@ -60,5 +62,5 @@ else
 \`\`\`
 $ERROR_LOG
 \`\`\`
-Periksa log build untuk detail lebih lanjut."
+Check build log for details."
 fi

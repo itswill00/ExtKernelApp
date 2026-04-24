@@ -28,6 +28,14 @@ class SystemRepositoryImpl @Inject constructor(
         return hardwareDetector.getRamStatus()
     }
 
+    override suspend fun getBatteryInfo(): Pair<Int, String> {
+        return hardwareDetector.getBatteryInfo()
+    }
+
+    override suspend fun getUptime(): String {
+        return hardwareDetector.getUptime()
+    }
+
     override suspend fun isRootAvailable(): Boolean {
         return RootShellManager.isRootAvailable()
     }

@@ -7,5 +7,7 @@ interface SystemRepository {
     suspend fun getCpuFrequency(coreIndex: Int): String
     suspend fun getTemperature(): String
     suspend fun getRamUsage(): Pair<Long, Long>
+    suspend fun getBatteryInfo(): Pair<Int, String>
+    suspend fun getUptime(): String
     suspend fun isRootAvailable(): Boolean
 }
