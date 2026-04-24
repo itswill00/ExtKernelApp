@@ -91,3 +91,27 @@ class SysfsPathResolver @Inject constructor() {
         return devices
     }
 }
+
+/**
+ * Hardcore CPU Cluster Model
+ */
+data class CpuCluster(
+    val id: Int,
+    val path: String,
+    val affectedCores: List<Int>,
+    val availableFrequencies: List<Long>,
+    val availableGovernors: List<String>
+)
+
+/**
+ * Hardcore GPU Model
+ */
+data class GpuInfo(
+    val path: String,
+    val type: GpuType,
+    val availableFrequencies: List<Long>,
+    val availableGovernors: List<String>
+)
+
+enum class GpuType { ADRENO, MALI, UNKNOWN }
+

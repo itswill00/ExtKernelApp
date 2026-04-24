@@ -4,8 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +32,7 @@ fun RootRequestScreen(
             modifier = Modifier.padding(32.dp)
         ) {
             Icon(
-                imageVector = if (isChecking) Icons.Default.Lock else Icons.Default.Warning,
+                imageVector = if (isChecking) Icons.Default.Lock else Icons.Default.Info,
                 contentDescription = null,
                 tint = if (isChecking) Color.Gray else Color.Red,
                 modifier = Modifier.size(80.dp)

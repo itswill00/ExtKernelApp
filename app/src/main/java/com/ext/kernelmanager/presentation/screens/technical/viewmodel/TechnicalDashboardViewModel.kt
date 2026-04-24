@@ -55,27 +55,33 @@ class TechnicalDashboardViewModel @Inject constructor(
             val gpuInfo = tuningRepository.getGpuInfo()
 
             while (true) {
-                val clusterStates = clusters.map { cluster ->
+                val clusterStates = mutableListOf<CpuClusterState>()
+                for (cluster in clusters) {
                     val current = tuningRepository.getClusterCurrentFreq(cluster.id)
                     val gov = tuningRepository.getClusterCurrentGovernor(cluster.id)
-                    CpuClusterState(
-                        id = cluster.id,
-                        currentFreq = current,
-                        maxFreq = cluster.availableFrequencies.maxOrNull() ?: 0,
-                        minFreq = cluster.availableFrequencies.minOrNull() ?: 0,
-                        governor = gov,
-                        availableFrequencies = cluster.availableFrequencies,
-                        availableGovernors = cluster.availableGovernors
+                    clusterStates.add(
+                        CpuClusterState(
+                            id = cluster.id,
+                            currentFreq = current,
+                            maxFreq = cluster.availableFrequencies.maxOrNull() ?: 0,
+                            minFreq = cluster.availableFrequencies.minOrNull() ?: 0,
+                            governor = gov,
+                            availableFrequencies = cluster.availableFrequencies,
+                            availableGovernors = cluster.availableGovernors
+                        )
                     )
                 }
 
-                val gpuState = gpuInfo?.let {
-                    GpuState(
-                        currentFreq = tuningRepository.getGpuCurrentFreq(),
-                        maxFreq = it.availableFrequencies.maxOrNull() ?: 0,
-                        governor = tuningRepository.getGpuCurrentGovernor(),
-                        availableFrequencies = it.availableFrequencies,
-                        availableGovernors = it.availableGovernors
+                var gpuState: GpuState? = null
+                if (gpuInfo != null) {
+                    val currentFreq = tuningRepository.getGpuCurrentFreq()
+                    val governor = tuningRepository.getGpuCurrentGovernor()
+                    gpuState = GpuState(
+                        currentFreq = currentFreq,
+                        maxFreq = gpuInfo.availableFrequencies.maxOrNull() ?: 0,
+                        governor = governor,
+                        availableFrequencies = gpuInfo.availableFrequencies,
+                        availableGovernors = gpuInfo.availableGovernors
                     )
                 }
 
@@ -85,7 +91,7 @@ class TechnicalDashboardViewModel @Inject constructor(
                     isLoading = false
                 )
                 
-                delay(1000)
+                delay(1500)
             }
         }
     }

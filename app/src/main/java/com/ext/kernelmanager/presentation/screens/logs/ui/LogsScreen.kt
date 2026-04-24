@@ -42,7 +42,7 @@ fun LogsScreen(
                 TopAppBar(
                     title = { Text("System Logs", fontWeight = FontWeight.Bold) }
                 )
-                SecondaryTabRow(selectedTabIndex = if (state.isKernelLogActive) 0 else 1) {
+                TabRow(selectedTabIndex = if (state.isKernelLogActive) 0 else 1) {
                     Tab(
                         selected = state.isKernelLogActive,
                         onClick = { viewModel.startKernelLog() },
