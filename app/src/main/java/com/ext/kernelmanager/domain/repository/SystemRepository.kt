@@ -1,6 +1,7 @@
 package com.ext.kernelmanager.domain.repository
 
 import com.ext.kernelmanager.core.hardware.DeviceIdentity
+import com.ext.kernelmanager.domain.model.telemetry.SystemTelemetry
 
 interface SystemRepository {
     fun getDeviceIdentity(): DeviceIdentity
@@ -10,4 +11,7 @@ interface SystemRepository {
     suspend fun getBatteryInfo(): Pair<Int, String>
     suspend fun getUptime(): String
     suspend fun isRootAvailable(): Boolean
+    
+    // The challenge: Full Telemetry
+    suspend fun getFullTelemetry(): SystemTelemetry
 }

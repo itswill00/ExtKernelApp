@@ -27,8 +27,19 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSystemRepository(hardwareDetector: HardwareDetector): SystemRepository {
-        return SystemRepositoryImpl(hardwareDetector)
+    fun provideAdvancedHardwareDetector(
+        pathResolver: com.ext.kernelmanager.core.sysfs.SysfsPathResolver
+    ): com.ext.kernelmanager.core.hardware.AdvancedHardwareDetector {
+        return com.ext.kernelmanager.core.hardware.AdvancedHardwareDetector(pathResolver)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSystemRepository(
+        hardwareDetector: HardwareDetector,
+        advancedDetector: com.ext.kernelmanager.core.hardware.AdvancedHardwareDetector
+    ): SystemRepository {
+        return com.ext.kernelmanager.data.repository.SystemRepositoryImpl(hardwareDetector, advancedDetector)
     }
 
     @Provides

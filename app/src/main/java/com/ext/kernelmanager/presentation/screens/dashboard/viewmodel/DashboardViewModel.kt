@@ -3,6 +3,7 @@ package com.ext.kernelmanager.presentation.screens.dashboard.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ext.kernelmanager.core.hardware.DeviceIdentity
+import com.ext.kernelmanager.domain.model.telemetry.SystemTelemetry
 import com.ext.kernelmanager.domain.repository.SystemRepository
 import com.ext.kernelmanager.domain.repository.HardcoreTuningRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,15 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class DashboardState(
-    val deviceIdentity: DeviceIdentity? = null,
-    val cpuFreq: String = "Updating...",
-    val temperature: String = "N/A",
-    val ramText: String = "Analyzing memory map...",
-    val ramUsagePercent: Float = 0f,
-    val batteryCapacity: Int = 0,
-    val batteryHealth: String = "N/A",
-    val uptime: String = "N/A",
-    val gpuFreq: String = "N/A",
+    val telemetry: SystemTelemetry? = null,
     val isRooted: Boolean = false,
     val isLoading: Boolean = true
 )
@@ -38,12 +31,8 @@ class DashboardViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val identity = systemRepository.getDeviceIdentity()
             val rootStatus = systemRepository.isRootAvailable()
-            _state.value = _state.value.copy(
-                deviceIdentity = identity,
-                isRooted = rootStatus
-            )
+            _state.value = _state.value.copy(isRooted = rootStatus)
         }
         startTelemetryLoop()
     }
@@ -51,32 +40,28 @@ class DashboardViewModel @Inject constructor(
     private fun startTelemetryLoop() {
         viewModelScope.launch {
             while (true) {
-                val cpu = systemRepository.getCpuFrequency(0)
-                val temp = systemRepository.getTemperature()
-                val ram = systemRepository.getRamUsage()
-                val battery = systemRepository.getBatteryInfo()
-                val uptimeStr = systemRepository.getUptime()
-                val gpu = tuningRepository.getGpuCurrentFreq()
-                
-                val total = ram.first
-                val avail = ram.second
-                val used = total - avail
-                val percent = if (total > 0) (used.toFloat() / total.toFloat()) else 0f
-                
-                val ramStatus = "Used: ${used}MB / Total: ${total}MB"
+                try {
+                    val fullTelemetry = systemRepository.getFullTelemetry()
+                    
+                    // Fetch real GPU data using HardcoreTuningRepository
+                    val gpuInfo = tuningRepository.getGpuInfo()
+                    val gpuFreq = tuningRepository.getGpuCurrentFreq()
+                    val gpuGov = tuningRepository.getGpuCurrentGovernor()
+                    
+                    val enrichedTelemetry = fullTelemetry.copy(
+                        gpu = fullTelemetry.gpu.copy(
+                            currentFreq = if (gpuFreq > 0) "${gpuFreq / 1000000} MHz" else "N/A",
+                            governor = gpuGov
+                        )
+                    )
 
-                _state.value = _state.value.copy(
-                    cpuFreq = cpu,
-                    temperature = temp,
-                    ramText = ramStatus,
-                    ramUsagePercent = percent,
-                    batteryCapacity = battery.first,
-                    batteryHealth = battery.second,
-                    uptime = uptimeStr,
-                    gpuFreq = if (gpu > 0) "${gpu / 1000000} MHz" else "N/A",
-                    isLoading = false
-                )
-                
+                    _state.value = _state.value.copy(
+                        telemetry = enrichedTelemetry,
+                        isLoading = false
+                    )
+                } catch (e: Exception) {
+                    // Log error but keep loop running
+                }
                 delay(2000)
             }
         }

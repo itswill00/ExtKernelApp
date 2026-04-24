@@ -2,14 +2,18 @@ package com.ext.kernelmanager.data.repository
 
 import com.ext.kernelmanager.core.hardware.DeviceIdentity
 import com.ext.kernelmanager.core.hardware.HardwareDetector
+import com.ext.kernelmanager.core.hardware.AdvancedHardwareDetector
 import com.ext.kernelmanager.core.root.RootShellManager
+import com.ext.kernelmanager.domain.model.telemetry.GpuTelemetry
+import com.ext.kernelmanager.domain.model.telemetry.SystemTelemetry
 import com.ext.kernelmanager.domain.repository.SystemRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SystemRepositoryImpl @Inject constructor(
-    private val hardwareDetector: HardwareDetector
+    private val hardwareDetector: HardwareDetector,
+    private val advancedDetector: AdvancedHardwareDetector
 ) : SystemRepository {
 
     override fun getDeviceIdentity(): DeviceIdentity {
@@ -38,5 +42,17 @@ class SystemRepositoryImpl @Inject constructor(
 
     override suspend fun isRootAvailable(): Boolean {
         return RootShellManager.isRootAvailable()
+    }
+
+    override suspend fun getFullTelemetry(): SystemTelemetry {
+        return SystemTelemetry(
+            cpu = advancedDetector.getCpuTelemetry(),
+            gpu = GpuTelemetry("N/A", 0, "N/A"),
+            memory = advancedDetector.getMemoryTelemetry(),
+            battery = advancedDetector.getBatteryTelemetry(),
+            thermal = advancedDetector.getThermalTelemetry(),
+            kernel = advancedDetector.getKernelTelemetry(),
+            uptime = hardwareDetector.getUptime()
+        )
     }
 }
