@@ -1,56 +1,82 @@
 package com.ext.kernelmanager.core.sysfs
 
-import com.ext.kernelmanager.core.root.RootResult
-import com.ext.kernelmanager.core.root.RootShellManager
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * SysfsPathResolver: Jantung dari deteksi hardcore.
- * Bertanggung jawab memetakan ratusan variasi path sysfs dari berbagai vendor (Qualcomm, MediaTek, Samsung).
- * Mendukung deteksi Cluster CPU (big.LITTLE), GPU (Adreno/Mali), dan I/O Scheduler.
- */
 @Singleton
 class SysfsPathResolver @Inject constructor() {
 
-    // CPU Clusters
+    // CPU Frequencies & Clusters
+    val CPU_BASE_PATH = "/sys/devices/system/cpu"
+    val CPU_POLICY_BASE = "$CPU_BASE_PATH/cpufreq"
+    
+    // GPU
+    val GPU_ADRENO_PATH = "/sys/class/kgsl/kgsl-3d0"
+    val GPU_MALI_PATH = "/sys/devices/platform/mali.0"
+
+    // Thermal
+    val THERMAL_PATH = "/sys/class/thermal"
+
+    // CPU Clusters discovery
     fun getCpuClusterPaths(): List<String> {
         val clusters = mutableListOf<String>()
-        val baseDir = File("/sys/devices/system/cpu/cpufreq")
+        val baseDir = File(CPU_POLICY_BASE)
         if (baseDir.exists()) {
-            baseDir.listFiles()?.forEach { file ->
-                if (file.name.startsWith("policy")) {
-                    clusters.add(file.absolutePath)
-                }
+            baseDir.listFiles()?.filter { it.name.startsWith("policy") }?.forEach { 
+                clusters.add(it.absolutePath) 
             }
         }
-        // Fallback for older devices or custom kernels
         if (clusters.isEmpty()) {
             for (i in 0..7) {
-                val path = "/sys/devices/system/cpu/cpu$i/cpufreq"
+                val path = "$CPU_BASE_PATH/cpu$i/cpufreq"
                 if (File(path).exists()) clusters.add(path)
             }
         }
-        return clusters.distinct()
+        return clusters.sorted()
     }
 
-    // GPU Paths (Highly Specific)
-    suspend fun getGpuPath(): String? {
-        val adrenoPaths = listOf(
-            "/sys/class/kgsl/kgsl-3d0",
-            "/sys/devices/platform/soc/1c00000.qcom,kgsl-3d0/kgsl/kgsl-3d0"
+    // Advanced: CPU Hotplug detection
+    fun getHotplugPaths(): List<String> {
+        return listOf(
+            "/sys/module/msm_hotplug",
+            "/sys/module/intelli_plug",
+            "/sys/module/blu_plug",
+            "/sys/module/auto_smp",
+            "/sys/devices/system/cpu/cpuhotplug"
+        ).filter { File(it).exists() }
+    }
+
+    // Advanced: Thermal mitigation paths
+    fun getThermalControlPaths(): List<String> {
+        return listOf(
+            "/sys/module/msm_thermal",
+            "/sys/devices/virtual/thermal/thermal_message"
+        ).filter { File(it).exists() }
+    }
+
+    // GPU path discovery
+    fun getGpuPath(): String? {
+        val paths = listOf(GPU_ADRENO_PATH, GPU_MALI_PATH, "/sys/devices/platform/soc/1c00000.qcom,kgsl-3d0/kgsl/kgsl-3d0")
+        return paths.find { File(it).exists() }
+    }
+
+    // Screen / KCAL
+    fun getKcalPath(): String? {
+        val paths = listOf(
+            "/sys/devices/platform/kcal_ctrl.0",
+            "/sys/module/kcal_utils/parameters"
         )
-        val maliPaths = listOf(
-            "/sys/class/misc/mali0/device",
-            "/sys/devices/platform/mali.0",
-            "/sys/devices/platform/mali_t76x.0"
+        return paths.find { File(it).exists() }
+    }
+
+    // Sound
+    fun getSoundControlPath(): String? {
+        val paths = listOf(
+            "/sys/kernel/sound_control",
+            "/sys/class/misc/sound_control"
         )
-        
-        for (path in adrenoPaths + maliPaths) {
-            if (File(path).exists()) return path
-        }
-        return null
+        return paths.find { File(it).exists() }
     }
 
     // I/O Block Devices
@@ -58,61 +84,10 @@ class SysfsPathResolver @Inject constructor() {
         val devices = mutableListOf<String>()
         val baseDir = File("/sys/block")
         if (baseDir.exists()) {
-            baseDir.listFiles()?.forEach { file ->
-                // Filter only main storage devices (sda, mmcblk0, sdb, etc)
-                if (file.name.startsWith("sd") || file.name.startsWith("mmcblk")) {
-                    devices.add(file.absolutePath)
-                }
-            }
+            baseDir.listFiles()?.filter { 
+                it.name.startsWith("sd") || it.name.startsWith("mmcblk") || it.name.startsWith("dm-")
+            }?.forEach { devices.add(it.absolutePath) }
         }
         return devices
     }
-
-    // Sound Control Paths
-    suspend fun getSoundControlPath(): String? {
-        val paths = listOf(
-            "/sys/kernel/sound_control",
-            "/sys/class/misc/sound_control",
-            "/sys/devices/virtual/misc/sound_control"
-        )
-        for (path in paths) {
-            if (File(path).exists()) return path
-        }
-        return null
-    }
-
-    // Display / KCAL
-    suspend fun getKcalPath(): String? {
-        val paths = listOf(
-            "/sys/devices/platform/kcal_ctrl.0",
-            "/sys/module/kcal_utils/parameters"
-        )
-        for (path in paths) {
-            if (File(path).exists()) return path
-        }
-        return null
-    }
 }
-
-/**
- * Hardcore CPU Cluster Model
- */
-data class CpuCluster(
-    val id: Int,
-    val path: String,
-    val affectedCores: List<Int>,
-    val availableFrequencies: List<Long>,
-    val availableGovernors: List<String>
-)
-
-/**
- * Hardcore GPU Model
- */
-data class GpuInfo(
-    val path: String,
-    val type: GpuType,
-    val availableFrequencies: List<Long>,
-    val availableGovernors: List<String>
-)
-
-enum class GpuType { ADRENO, MALI, UNKNOWN }

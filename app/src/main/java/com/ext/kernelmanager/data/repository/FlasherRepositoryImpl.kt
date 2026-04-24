@@ -34,14 +34,13 @@ class FlasherRepositoryImpl @Inject constructor() : FlasherRepository {
 
     override fun executeWithProgress(command: String): Flow<String> = flow {
         try {
-            emit(">> Memulai eksekusi perintah keamanan tingkat tinggi...")
+            emit(">> Initiating high-security command execution...")
             val process = Runtime.getRuntime().exec("su")
             val os = DataOutputStream(process.outputStream)
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             val errorReader = BufferedReader(InputStreamReader(process.errorStream))
 
-            // Menggabungkan stdout dan stderr (karena `su` kadang memisahkan output log root)
-            // Di sini kita membaca keduanya. Cara paling aman untuk bash adalah menambahkan 2>&1
+            // Merge stdout and stderr
             val fullCommand = "$command 2>&1\n"
             os.writeBytes(fullCommand)
             os.writeBytes("exit\n")
@@ -54,17 +53,17 @@ class FlasherRepositoryImpl @Inject constructor() : FlasherRepository {
 
             val exitCode = process.waitFor()
             if (exitCode == 0) {
-                emit(">> Eksekusi selesai dengan status: Sukses.")
+                emit(">> Execution completed successfully.")
             } else {
-                emit(">> Eksekusi dihentikan dengan pesan error (Kode $exitCode).")
-                // Membaca error jika ada sisa (sebenarnya sudah digabung ke 2>&1)
+                emit(">> Execution terminated with error code $exitCode.")
+                // Read remaining error output
                 while (errorReader.readLine().also { line = it } != null) {
                     emit("Error: $line")
                 }
             }
 
         } catch (e: Exception) {
-            emit(">> Terjadi kesalahan sistem yang fatal: ${e.message}")
+            emit(">> Fatal system error encountered: ${e.message}")
         }
     }.flowOn(Dispatchers.IO)
 }

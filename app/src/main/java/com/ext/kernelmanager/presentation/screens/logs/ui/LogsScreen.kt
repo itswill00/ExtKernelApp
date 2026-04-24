@@ -28,7 +28,7 @@ fun LogsScreen(
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
 
-    // Auto-scroll to bottom
+    // Auto-scroll to bottom on new log entry
     LaunchedEffect(state.kernelLogs.size, state.systemLogs.size) {
         val size = if (state.isKernelLogActive) state.kernelLogs.size else state.systemLogs.size
         if (size > 0) {
@@ -39,8 +39,10 @@ fun LogsScreen(
     Scaffold(
         topBar = {
             Column {
-                TopAppBar(title = { Text("Live Kernel & System Logs", fontWeight = FontWeight.Bold) })
-                TabRow(selectedTabIndex = if (state.isKernelLogActive) 0 else 1) {
+                TopAppBar(
+                    title = { Text("System Logs", fontWeight = FontWeight.Bold) }
+                )
+                SecondaryTabRow(selectedTabIndex = if (state.isKernelLogActive) 0 else 1) {
                     Tab(
                         selected = state.isKernelLogActive,
                         onClick = { viewModel.startKernelLog() },
@@ -59,24 +61,35 @@ fun LogsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp)
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                color = Color.Black,
+                shape = RoundedCornerShape(12.dp)
             ) {
-                val currentLogs = if (state.isKernelLogActive) state.kernelLogs else state.systemLogs
-                items(currentLogs) { log ->
-                    Text(
-                        text = log,
-                        color = if (log.contains("E/", ignoreCase = true) || log.contains("error", ignoreCase = true)) 
-                            Color.Red else Color(0xFF00FF00),
-                        fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace,
-                        lineHeight = 14.sp,
-                        modifier = Modifier.padding(vertical = 1.dp)
-                    )
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(12.dp)
+                ) {
+                    val currentLogs = if (state.isKernelLogActive) state.kernelLogs else state.systemLogs
+                    items(currentLogs) { log ->
+                        Text(
+                            text = log,
+                            color = when {
+                                log.contains("E/", ignoreCase = true) || log.contains("error", ignoreCase = true) -> Color(0xFFFF5252)
+                                log.contains("W/", ignoreCase = true) || log.contains("warn", ignoreCase = true) -> Color(0xFFFFD740)
+                                else -> Color(0xFF69F0AE)
+                            },
+                            fontSize = 10.sp,
+                            fontFamily = FontFamily.Monospace,
+                            lineHeight = 14.sp,
+                            modifier = Modifier.padding(vertical = 1.dp)
+                        )
+                    }
                 }
             }
         }

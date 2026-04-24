@@ -36,7 +36,7 @@ fun MemoryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Manajemen Memori", fontWeight = FontWeight.Bold) })
+            TopAppBar(title = { Text("Memory Management", fontWeight = FontWeight.Bold) })
         }
     ) { padding ->
         Column(
@@ -47,13 +47,13 @@ fun MemoryScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                "Kendalikan RAM & Memori Virtual",
+                "RAM & Virtual Memory Control",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
             Text(
-                "Atur bagaimana sistem mengelola ruang penyimpanan saat menjalankan banyak aplikasi.",
+                "Configure how the system manages storage space when running multiple applications.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -64,7 +64,7 @@ fun MemoryScreen(
                     CircularProgressIndicator(strokeWidth = 2.dp)
                 }
             } else if (!state.isZramSupported) {
-                ErrorMessageCard(message = state.infoMessage ?: "Fitur memori tidak didukung perangkat ini.")
+                ErrorMessageCard(message = state.infoMessage ?: "Memory features are not supported on this device.")
             } else {
                 // ZRAM Size Card
                 Card(
@@ -73,8 +73,8 @@ fun MemoryScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Ukuran ZRAM (Memori Virtual)", fontWeight = FontWeight.Bold)
-                        Text("Membantu perangkat bernapas saat RAM penuh.", fontSize = 12.sp, color = Color.Gray)
+                        Text("ZRAM Size (Virtual Memory)", fontWeight = FontWeight.Bold)
+                        Text("Helps the device breathe when RAM is full.", fontSize = 12.sp, color = Color.Gray)
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         var zramValue by remember { mutableStateOf(state.zramSizeMb.toFloat()) }
@@ -100,8 +100,8 @@ fun MemoryScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Kecenderungan Swap (Swappiness)", fontWeight = FontWeight.Bold)
-                        Text("Seberapa sering sistem akan menggunakan memori virtual.", fontSize = 12.sp, color = Color.Gray)
+                        Text("Swappiness", fontWeight = FontWeight.Bold)
+                        Text("How often the system will use virtual memory.", fontSize = 12.sp, color = Color.Gray)
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         var swappinessValue by remember { mutableStateOf(state.swappiness.toFloat()) }
@@ -126,8 +126,8 @@ fun MemoryScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Manajemen Aplikasi Latar (LMK)", fontWeight = FontWeight.Bold)
-                        Text("Pilih seberapa agresif sistem menutup aplikasi yang tidak dipakai.", fontSize = 12.sp, color = Color.Gray)
+                        Text("Low Memory Killer (LMK)", fontWeight = FontWeight.Bold)
+                        Text("Choose how aggressively the system closes unused background applications.", fontSize = 12.sp, color = Color.Gray)
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         ExposedDropdownMenuBox(
@@ -138,7 +138,7 @@ fun MemoryScreen(
                                 value = state.lmkProfile,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Profil RAM") },
+                                label = { Text("RAM Profile") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedLmk) },
                                 modifier = Modifier.menuAnchor().fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp)

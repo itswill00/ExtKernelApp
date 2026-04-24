@@ -7,14 +7,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,21 +28,24 @@ fun ExplorerScreen(
     viewModel: ExplorerViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = { 
                     Column {
-                        Text("Sysfs Explorer", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text(state.currentPath, fontSize = 10.sp, color = Color.Gray)
+                        Text("Node Explorer", fontWeight = FontWeight.Bold)
+                        Text(state.currentPath, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { viewModel.goBack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Go back")
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
@@ -51,7 +55,7 @@ fun ExplorerScreen(
             }
 
             if (state.fileContent != null) {
-                FileEditor(
+                NodeEditor(
                     path = state.currentPath,
                     content = state.fileContent!!,
                     onSave = { viewModel.writeValue(state.currentPath, it) }
@@ -60,18 +64,22 @@ fun ExplorerScreen(
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(state.files) { item ->
                         ListItem(
-                            headlineContent = { Text(item.name, fontSize = 14.sp) },
+                            headlineContent = { Text(item.name, style = MaterialTheme.typography.bodyMedium) },
                             leadingContent = { 
                                 Icon(
-                                    if (item.isDirectory) Icons.Default.List else Icons.Default.Build, 
+                                    if (item.isDirectory) Icons.Default.Folder else Icons.Default.Article, 
                                     contentDescription = null,
-                                    tint = if (item.isDirectory) MaterialTheme.colorScheme.primary else Color.Gray
+                                    tint = if (item.isDirectory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(24.dp)
                                 ) 
                             },
-                            trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) },
+                            trailingContent = { 
+                                if (item.isDirectory) {
+                                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                                }
+                            },
                             modifier = Modifier.clickable { viewModel.navigateTo(item.path) }
                         )
-                        Divider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
                     }
                 }
             }
@@ -80,41 +88,37 @@ fun ExplorerScreen(
 }
 
 @Composable
-fun FileEditor(path: String, content: String, onSave: (String) -> Unit) {
+fun NodeEditor(path: String, content: String, onSave: (String) -> Unit) {
     var textValue by remember { mutableStateOf(content) }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Editing: ${path.substringAfterLast("/")}", fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Editing: ${path.substringAfterLast("/")}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         
         OutlinedTextField(
             value = textValue,
             onValueChange = { textValue = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Current Value") },
-            shape = RoundedCornerShape(12.dp)
+            label = { Text("Node Value") },
+            shape = RoundedCornerShape(16.dp)
         )
-        
-        Spacer(modifier = Modifier.height(24.dp))
         
         Button(
             onClick = { onSave(textValue) },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Simpan Perubahan")
+            Text("Update Parameter")
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        
         Surface(
-            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-            shape = RoundedCornerShape(12.dp)
+            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
         ) {
-            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Hati-hati: Menulis nilai yang salah dapat menyebabkan sistem crash.", fontSize = 11.sp, color = MaterialTheme.colorScheme.error)
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Caution: Modifying kernel nodes can lead to system instability.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
             }
         }
     }

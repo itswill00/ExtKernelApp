@@ -33,7 +33,7 @@ class BatteryViewModel @Inject constructor(
 
     fun applyProfile(profileName: String) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, infoMessage = "Menerapkan profil $profileName. Harap tunggu...")
+            _state.value = _state.value.copy(isLoading = true, infoMessage = "Applying $profileName profile. Please wait...")
             
             val success = batteryRepository.applyProfile(profileName)
             
@@ -41,12 +41,12 @@ class BatteryViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     currentProfile = profileName,
                     isLoading = false,
-                    infoMessage = "Profil $profileName berhasil diterapkan. Sistem sekarang berjalan dengan konfigurasi ini."
+                    infoMessage = "$profileName profile applied successfully. System is now running with this configuration."
                 )
             } else {
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    infoMessage = "Gagal menerapkan profil $profileName. Akses root mungkin tidak diberikan."
+                    infoMessage = "Failed to apply $profileName profile. Root access might not be granted."
                 )
             }
         }

@@ -15,13 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ext.kernelmanager.presentation.screens.flasher.viewmodel.FlasherViewModel
-import android.provider.OpenableColumns
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,16 +29,14 @@ fun FlasherScreen(
     viewModel: FlasherViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     // File Picker
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        // In a real app, you need to copy the SAF URI to a cache directory 
-        // to get a real absolute path for root execution.
-        // For simplicity in this demo, we simulate the path resolution.
         uri?.let {
-            val fileName = it.lastPathSegment ?: "unknown_file.zip"
+            val fileName = it.lastPathSegment ?: "binary_package.zip"
             val dummyRealPath = "/sdcard/Download/$fileName" 
             viewModel.onFileSelected(fileName, dummyRealPath)
         }
@@ -50,13 +48,13 @@ fun FlasherScreen(
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Peringatan Keamanan", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Security Alert", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.error)
                 }
             },
             text = {
                 Text(
-                    "Proses ini akan mengubah sistem inti ponselmu. Pastikan kamu memilih file yang tepat agar ponsel tetap aman.\n\nFile yang dipilih: ${state.selectedFileName}\n\nLanjutkan eksekusi?",
+                    "You are about to modify core system partitions. Choosing an incorrect or corrupted file may lead to a permanent soft-brick. Proceed with extreme caution.\n\nTarget: ${state.selectedFileName}",
                     lineHeight = 20.sp
                 )
             },
@@ -65,107 +63,107 @@ fun FlasherScreen(
                     onClick = { viewModel.confirmAndFlash() },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Ya, Saya Yakin")
+                    Text("Flash Binary")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissConfirmDialog() }) {
-                    Text("Batal")
+                    Text("Abort")
                 }
-            },
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+            }
         )
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(title = { Text("Script & Flasher", fontWeight = FontWeight.Bold) })
+            TopAppBar(
+                title = { Text("Binary Flasher", fontWeight = FontWeight.Bold) },
+                scrollBehavior = scrollBehavior
+            )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Eksekusi Tingkat Lanjut",
+                "System Modification",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontWeight = FontWeight.Bold
             )
 
             Text(
-                "Jalankan skrip kustom atau pasang file sistem (.zip, .img, .sh). Harap berhati-hati, fitur ini bisa menyebabkan kerusakan jika digunakan secara asal.",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 24.dp)
+                "Deployment of low-level binaries, recovery images, or kernel scripts. Ensure data integrity before initializing the flash process.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Card(
+            ElevatedCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
+                shape = RoundedCornerShape(24.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        state.selectedFileName ?: "Belum ada file yang dipilih",
-                        fontWeight = FontWeight.Medium,
+                        state.selectedFileName ?: "No binary selected",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
                         color = if (state.selectedFileName == null) Color.Gray else MaterialTheme.colorScheme.onSurface
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
                     
                     Button(
                         onClick = { filePickerLauncher.launch("*/*") },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !state.isFlashing
+                        enabled = !state.isFlashing,
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Pilih File")
+                        Text("Select Package")
                     }
                 }
             }
 
             if (state.errorMessage != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(state.errorMessage!!, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                Text(state.errorMessage!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = { viewModel.requestFlash() },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = state.isReadyToFlash && !state.isFlashing,
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 )
             ) {
                 if (state.isFlashing) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onErrorContainer, strokeWidth = 2.dp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Sedang Memproses...")
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("Eksekusi File", fontWeight = FontWeight.Bold)
+                    Text("Initialize Execution", fontWeight = FontWeight.Bold)
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
             if (state.logs.isNotEmpty()) {
-                Text("Log Sistem Real-time", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                Text("Process Output", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                 
                 Surface(
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     color = Color.Black,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    LazyColumn(modifier = Modifier.padding(12.dp)) {
+                    LazyColumn(modifier = Modifier.padding(16.dp)) {
                         items(state.logs) { log ->
-                            Text(log, color = Color(0xFF00FF00), fontSize = 10.sp, fontFamily = FontFamily.Monospace, lineHeight = 14.sp)
+                            Text(log, color = Color(0xFF69F0AE), fontSize = 10.sp, fontFamily = FontFamily.Monospace, lineHeight = 14.sp)
                         }
                     }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

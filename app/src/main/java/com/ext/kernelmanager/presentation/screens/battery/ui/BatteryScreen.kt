@@ -5,12 +5,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +26,7 @@ fun BatteryScreen(
     viewModel: BatteryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     // Clear message after 4 seconds
     LaunchedEffect(state.infoMessage) {
@@ -34,103 +37,96 @@ fun BatteryScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(title = { Text("Baterai & Suhu", fontWeight = FontWeight.Bold) })
+            TopAppBar(
+                title = { Text("Power Optimization", fontWeight = FontWeight.Bold) },
+                scrollBehavior = scrollBehavior
+            )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Profil Sistem Cerdas",
+                "Efficiency Profiles",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontWeight = FontWeight.Bold
             )
 
             Text(
-                "Pilih satu profil yang paling sesuai dengan kebutuhan Anda saat ini. Kami akan mengatur sisa parameter di balik layar.",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 24.dp)
+                "Presets designed to balance system energy consumption and computing power.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            ProfileCard(
+            ProfileInstrument(
                 title = "Battery Saver",
-                desc = "Menghemat daya baterai. Cocok saat Anda sedang jauh dari pengisi daya.",
+                desc = "Prioritizes longevity by aggressive clock scaling and power management.",
                 isSelected = state.currentProfile == "Battery Saver",
                 onClick = { viewModel.applyProfile("Battery Saver") }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileCard(
+            ProfileInstrument(
                 title = "Balanced",
-                desc = "Keseimbangan sempurna antara daya tahan baterai dan performa. Direkomendasikan untuk harian.",
+                desc = "Maintains a dynamic equilibrium between energy use and responsiveness.",
                 isSelected = state.currentProfile == "Balanced",
                 onClick = { viewModel.applyProfile("Balanced") }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileCard(
+            ProfileInstrument(
                 title = "Performance",
-                desc = "Membuka seluruh potensi kecepatan prosesor. Cocok untuk bermain game (Mungkin baterai lebih cepat habis dan sedikit hangat).",
+                desc = "Provides maximum clock throughput for high-intensity computational tasks.",
                 isSelected = state.currentProfile == "Performance",
                 onClick = { viewModel.applyProfile("Performance") }
             )
 
             if (state.isLoading) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(state.infoMessage ?: "Menerapkan profil...", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
-                }
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Text(state.infoMessage ?: "Processing deployment...", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
             } else if (state.infoMessage != null) {
-                Spacer(modifier = Modifier.height(24.dp))
                 Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                    shape = RoundedCornerShape(12.dp)
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(state.infoMessage!!, fontSize = 14.sp)
+                        Text(state.infoMessage!!, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileCard(title: String, desc: String, isSelected: Boolean, onClick: () -> Unit) {
-    Card(
+fun ProfileInstrument(title: String, desc: String, isSelected: Boolean, onClick: () -> Unit) {
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surface
         ),
-        border = if (isSelected) androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         onClick = onClick
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = isSelected, onClick = null)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
+                    Text(desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(desc, fontSize = 13.sp, lineHeight = 18.sp, color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else Color.Gray)
         }
     }
 }

@@ -70,10 +70,10 @@ class ExplorerViewModel @Inject constructor(
                 val newContent = tuningRepository.readSysfs(path)
                 _state.value = _state.value.copy(
                     fileContent = newContent,
-                    infoMessage = "Berhasil menulis ke sysfs."
+                    infoMessage = "Successfully wrote to sysfs."
                 )
             } else {
-                _state.value = _state.value.copy(infoMessage = "Gagal menulis. Pastikan path writable.")
+                _state.value = _state.value.copy(infoMessage = "Write failed. Ensure the path is writable.")
             }
             _state.value = _state.value.copy(isLoading = false)
         }

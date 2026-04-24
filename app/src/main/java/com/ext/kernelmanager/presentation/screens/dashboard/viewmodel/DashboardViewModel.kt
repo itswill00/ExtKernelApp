@@ -14,9 +14,9 @@ import javax.inject.Inject
 
 data class DashboardState(
     val deviceIdentity: DeviceIdentity? = null,
-    val cpuFreq: String = "POLLING...",
+    val cpuFreq: String = "Updating...",
     val temperature: String = "N/A",
-    val ramText: String = "Allocating memory map...",
+    val ramText: String = "Analyzing memory map...",
     val ramUsagePercent: Float = 0f,
     val isRooted: Boolean = false,
     val isLoading: Boolean = true
@@ -35,10 +35,10 @@ class DashboardViewModel @Inject constructor(
             val identity = systemRepository.getDeviceIdentity()
             _state.value = _state.value.copy(deviceIdentity = identity)
         }
-        startInstrumentPolling()
+        startTelemetryLoop()
     }
 
-    private fun startInstrumentPolling() {
+    private fun startTelemetryLoop() {
         viewModelScope.launch {
             while (true) {
                 val cpu = systemRepository.getCpuFrequency(0)
@@ -50,7 +50,12 @@ class DashboardViewModel @Inject constructor(
                 val used = total - avail
                 val percent = if (total > 0) (used.toFloat() / total.toFloat()) else 0f
                 
-                val ramStatus = "Used: ${used}MB / Total: ${total}MB (Free: ${avail}MB)"
+                // Human-centric memory text
+                val ramStatus = if (total > 0) {
+                    "Currently using ${used}MB out of ${total}MB total RAM. ${avail}MB remains available for the system."
+                } else {
+                    "Waiting for memory statistics..."
+                }
 
                 _state.value = _state.value.copy(
                     cpuFreq = cpu,
@@ -60,7 +65,7 @@ class DashboardViewModel @Inject constructor(
                     isLoading = false
                 )
                 
-                delay(1500)
+                delay(2000)
             }
         }
     }

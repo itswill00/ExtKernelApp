@@ -41,7 +41,7 @@ fun RootRequestScreen(
             Spacer(modifier = Modifier.height(24.dp))
             
             Text(
-                text = if (isChecking) "Memvalidasi Izin Sistem..." else "Akses Root Ditolak",
+                text = if (isChecking) "Validating System Privileges..." else "Root Access Denied",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Black
@@ -50,8 +50,8 @@ fun RootRequestScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = if (isChecking) "Mohon tunggu sebentar, kami sedang memastikan aplikasi memiliki izin yang cukup untuk mengelola kernel Anda." 
-                       else "Ext Kernel Manager memerlukan hak akses Root untuk memodifikasi sistem. Tanpa izin ini, aplikasi tidak dapat berfungsi.",
+                text = if (isChecking) "Please wait a moment while we ensure the application has sufficient permissions to manage your kernel." 
+                       else "Ext Kernel Manager requires Root access to modify system parameters. Without this permission, the application cannot function.",
                 color = Color.Gray,
                 textAlign = TextAlign.Center,
                 fontSize = 14.sp,
@@ -66,7 +66,7 @@ fun RootRequestScreen(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Coba Lagi", fontWeight = FontWeight.Bold)
+                    Text("Retry Elevation", fontWeight = FontWeight.Bold)
                 }
             } else {
                 Spacer(modifier = Modifier.height(32.dp))

@@ -1,14 +1,18 @@
 package com.ext.kernelmanager.presentation.screens.cpu.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,42 +26,53 @@ fun CpuTuningScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var expanded by remember { mutableStateOf(false) }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(title = { Text("Optimasi Performa", fontWeight = FontWeight.Bold) })
+            TopAppBar(
+                title = { Text("Core Tuning", fontWeight = FontWeight.Bold) },
+                scrollBehavior = scrollBehavior
+            )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Mode Performa (Governor)",
+                "Processor Governor",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontWeight = FontWeight.Bold
             )
             
             Text(
-                "Pilih bagaimana sistem mengelola tenaga prosesor Anda.",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 16.dp)
+                "The governor determines how the system scales CPU frequency based on load. Select a mode that fits your performance needs.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             if (!state.isSupported) {
-                ErrorMessageCard(message = state.errorMessage ?: "Fitur tidak didukung.")
+                ErrorMessageCard(message = state.errorMessage ?: "This feature is not supported by your current kernel.")
             } else {
-                Card(
+                ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
-                    )
+                    shape = RoundedCornerShape(24.dp)
                 ) {
-                    Box(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Active Scaling Mode", fontWeight = FontWeight.Bold)
+                        }
+                        
+                        Spacer(modifier = Modifier.height(20.dp))
+                        
                         ExposedDropdownMenuBox(
                             expanded = expanded,
                             onExpandedChange = { expanded = !expanded }
@@ -66,7 +81,7 @@ fun CpuTuningScreen(
                                 value = state.currentGovernor,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Mode Aktif") },
+                                label = { Text("Selected Governor") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                                 modifier = Modifier.menuAnchor().fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp)
@@ -92,13 +107,20 @@ fun CpuTuningScreen(
             }
 
             if (state.errorMessage != null && state.isSupported) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    state.errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 12.sp
-                )
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+                ) {
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(state.errorMessage!!, color = MaterialTheme.colorScheme.onErrorContainer, fontSize = 12.sp)
+                    }
+                }
             }
+            
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
@@ -106,25 +128,24 @@ fun CpuTuningScreen(
 @Composable
 fun ErrorMessageCard(message: String) {
     Surface(
-        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
-        shape = RoundedCornerShape(20.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(24.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 Icons.Default.Warning,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
+                tint = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 message,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                color = MaterialTheme.colorScheme.onErrorContainer
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 20.sp
             )
         }
     }

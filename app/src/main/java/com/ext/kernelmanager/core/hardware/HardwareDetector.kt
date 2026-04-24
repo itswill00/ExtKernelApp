@@ -5,15 +5,15 @@ import com.ext.kernelmanager.core.root.RootShellManager
 import java.io.File
 
 /**
- * Mendeteksi spesifikasi sistem dengan cara yang dinamis.
+ * Detects system specifications dynamically.
  */
 class HardwareDetector {
 
     /**
-     * Mendapatkan nama model perangkat dan versi kernel.
+     * Gets device model name and kernel version.
      */
     fun getDeviceInfo(): DeviceIdentity {
-        val kernelVersion = System.getProperty("os.version") ?: "Versi kernel tidak terdeteksi"
+        val kernelVersion = System.getProperty("os.version") ?: "Kernel version not detected"
         val model = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}"
         
         return DeviceIdentity(
@@ -24,18 +24,14 @@ class HardwareDetector {
     }
 
     /**
-     * Membaca informasi CPU (Max Frequency) secara aman.
-     * Menggunakan strategi pencarian path dinamis (Auto-Detect).
-     */
-    /**
-     * Membaca suhu perangkat secara dinamis dari berbagai thermal zone.
+     * Reads device temperature dynamically from various thermal zones.
      */
     suspend fun getDeviceTemp(): String {
-        // Daftar path thermal yang umum pada Android
+        // List of common Android thermal paths
         val thermalPaths = listOf(
             "/sys/class/thermal/thermal_zone0/temp",
             "/sys/class/thermal/thermal_zone1/temp",
-            "/sys/class/thermal/thermal_zone7/temp" // Seringkali CPU/Battery pada beberapa chipset
+            "/sys/class/thermal/thermal_zone7/temp"
         )
 
         for (path in thermalPaths) {
@@ -43,7 +39,7 @@ class HardwareDetector {
                 val result = RootShellManager.execute("cat $path")
                 if (result is RootResult.Success) {
                     val rawTemp = result.output.trim().toFloatOrNull() ?: continue
-                    // Konversi dari miliderajat (misal 45000) ke derajat (45.0)
+                    // Convert from millidegrees (e.g., 45000) to degrees (45.0)
                     val temp = if (rawTemp > 1000) rawTemp / 1000 else rawTemp
                     return "${temp.toInt()}°C"
                 }
@@ -53,7 +49,7 @@ class HardwareDetector {
     }
 
     /**
-     * Membaca sisa RAM dari /proc/meminfo.
+     * Reads available RAM from /proc/meminfo.
      */
     suspend fun getRamStatus(): Pair<Long, Long> {
         val result = RootShellManager.execute("cat /proc/meminfo")
@@ -61,11 +57,15 @@ class HardwareDetector {
             val lines = result.output.split("\n")
             val total = lines.find { it.startsWith("MemTotal:") }?.filter { it.isDigit() }?.toLongOrNull() ?: 0L
             val available = lines.find { it.startsWith("MemAvailable:") }?.filter { it.isDigit() }?.toLongOrNull() ?: 0L
-            return Pair(total / 1024, available / 1024) // Mengembalikan dalam MB
+            return Pair(total / 1024, available / 1024) // Returns in MB
         }
         return Pair(0L, 0L)
     }
 
+    /**
+     * Reads CPU information (Max Frequency) securely.
+     * Uses dynamic path discovery strategy (Auto-Detect).
+     */
     suspend fun getCpuMaxFreq(coreIndex: Int = 0): String {
         val path = "/sys/devices/system/cpu/cpu$coreIndex/cpufreq/scaling_max_freq"
         
@@ -76,8 +76,8 @@ class HardwareDetector {
                 else -> "N/A"
             }
         } else {
-            // Fallback: Beberapa perangkat menggunakan path berbeda atau terkunci
-            "Tidak didukung"
+            // Fallback: Some devices use different or locked paths
+            "Unsupported"
         }
     }
 }

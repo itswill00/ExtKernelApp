@@ -21,24 +21,24 @@ class ApplyOnBootWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        Log.d("BootWorker", "Memulai penerapan parameter kernel...")
+        Log.d("BootWorker", "Starting kernel parameter application...")
         
-        // FAIL-SAFE 1: Penundaan eksekusi (Safe Mode)
-        // Kita menunggu sistem stabil (30-60 detik) sebelum memodifikasi parameter sensitif.
+        // SAFE MODE: Delay execution
+        // Wait for the system to stabilize (45 seconds) before modifying sensitive parameters.
         delay(45000)
 
         return try {
             val savedGovernor = settingsRepository.preferredGovernor.first()
             
             if (savedGovernor != null) {
-                Log.d("BootWorker", "Menerapkan Governor: $savedGovernor")
+                Log.d("BootWorker", "Applying Governor: $savedGovernor")
                 val success = cpuRepository.setGovernor(savedGovernor)
                 if (success) Result.success() else Result.retry()
             } else {
                 Result.success()
             }
         } catch (e: Exception) {
-            Log.e("BootWorker", "Gagal menerapkan parameter", e)
+            Log.e("BootWorker", "Failed to apply parameters", e)
             Result.failure()
         }
     }

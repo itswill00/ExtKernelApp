@@ -6,8 +6,8 @@ import javax.inject.Inject
 
 /**
  * ApplyOptimalConfigurationUseCase:
- * Use Case masif untuk menerapkan konfigurasi sistem yang matang berdasarkan analisis hardware.
- * Berisi ribuan baris logika tuning untuk optimasi ekstrem.
+ * Extensive Use Case for applying mature system configurations based on hardware analysis.
+ * Contains logic for extreme optimizations.
  */
 class ApplyOptimalConfigurationUseCase @Inject constructor(
     private val kernelEngine: MasterKernelEngine,
@@ -55,11 +55,6 @@ class ApplyOptimalConfigurationUseCase @Inject constructor(
                 paramsToApply["/sys/module/lowmemorykiller/parameters/minfree"] = "18432,23040,27648,32256,110592,161280"
             }
             
-            // Logika tuning tambahan ribuan baris untuk:
-            // - Thermal Throttling mitigation
-            // - TCP Congestion Control (westwood, bbr, cubic)
-            // - Entropy optimization (random/urandom)
-            // - Virtual Memory (dirty_ratio, swappiness sync)
             else -> {}
         }
 

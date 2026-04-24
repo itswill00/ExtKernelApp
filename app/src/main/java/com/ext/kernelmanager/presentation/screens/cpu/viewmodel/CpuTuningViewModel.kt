@@ -40,7 +40,7 @@ class CpuTuningViewModel @Inject constructor(
                 if (available.isEmpty()) {
                     _state.value = _state.value.copy(
                         isSupported = false,
-                        errorMessage = "Sistem perangkat ini mengunci pengaturan performa. Fitur ini sementara dinonaktifkan.",
+                        errorMessage = "This device has locked performance settings. This feature is temporarily disabled.",
                         isLoading = false
                     )
                 } else {
@@ -54,7 +54,7 @@ class CpuTuningViewModel @Inject constructor(
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     isSupported = false,
-                    errorMessage = "Terjadi kendala saat membaca data sistem.",
+                    errorMessage = "Encountered an issue while reading system data.",
                     isLoading = false
                 )
             }
@@ -68,7 +68,7 @@ class CpuTuningViewModel @Inject constructor(
                 _state.value = _state.value.copy(currentGovernor = newGovernor)
             } else {
                 _state.value = _state.value.copy(
-                    errorMessage = "Gagal mengubah mode performa. Izin sistem mungkin ditolak."
+                    errorMessage = "Failed to change performance mode. System permission might be denied."
                 )
             }
         }

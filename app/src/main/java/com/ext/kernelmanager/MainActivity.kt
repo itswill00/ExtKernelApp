@@ -88,13 +88,13 @@ enum class RootStatus { Checking, Granted, Denied }
 fun CrashDialog(onReset: () -> Unit, onIgnore: () -> Unit) {
     AlertDialog(
         onDismissRequest = { },
-        title = { Text("Mohon Maaf") },
-        text = { Text("Aplikasi mengalami masalah serius pada sesi sebelumnya. Hal ini bisa disebabkan oleh pengaturan yang tidak cocok dengan sistem Anda. Apakah Anda ingin mereset semua pengaturan untuk mencegah masalah berulang?") },
+        title = { Text("We are sorry") },
+        text = { Text("The application encountered a serious issue during the previous session. This might be caused by settings that are incompatible with your system. Would you like to reset all settings to prevent further issues?") },
         confirmButton = {
-            Button(onClick = onReset) { Text("Reset Pengaturan") }
+            Button(onClick = onReset) { Text("Reset Settings") }
         },
         dismissButton = {
-            TextButton(onClick = onIgnore) { Text("Abaikan") }
+            TextButton(onClick = onIgnore) { Text("Ignore") }
         }
     )
 }

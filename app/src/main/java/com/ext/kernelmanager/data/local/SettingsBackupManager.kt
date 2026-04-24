@@ -16,7 +16,7 @@ class SettingsBackupManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository
 ) {
-    // Simulasi: Ekspor semua pengaturan ke JSON
+    // Simulation: Export all settings to JSON
     suspend fun exportSettings(uri: Uri): Boolean = withContext(Dispatchers.IO) {
         try {
             val json = JSONObject()
@@ -34,7 +34,7 @@ class SettingsBackupManager @Inject constructor(
         }
     }
 
-    // Simulasi: Impor pengaturan dari JSON
+    // Simulation: Import settings from JSON
     suspend fun importSettings(uri: Uri): Boolean = withContext(Dispatchers.IO) {
         try {
             val stringBuilder = StringBuilder()

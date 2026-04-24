@@ -8,13 +8,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +29,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     // Export Launcher
     val exportLauncher = rememberLauncherForActivityResult(
@@ -51,42 +53,54 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(title = { Text("Pengaturan Lanjutan", fontWeight = FontWeight.Bold) })
+            TopAppBar(
+                title = { Text("App Preferences", fontWeight = FontWeight.Bold) },
+                scrollBehavior = scrollBehavior
+            )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Cadangkan Konfigurasi",
+                "Maintenance & Portability",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontWeight = FontWeight.Bold
             )
 
             Text(
-                "Simpan semua pengaturan performa, memori, dan profil baterai Anda ke dalam satu file. Sangat berguna jika Anda sering mengganti ROM.",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 24.dp)
+                "Backup your current configuration state to a JSON file. This includes all active tuning parameters and power profiles.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Card(
+            ElevatedCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
+                shape = RoundedCornerShape(24.dp)
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Backup, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Snapshot Manager", fontWeight = FontWeight.Bold)
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
                     Button(
-                        onClick = { exportLauncher.launch("ext_kernel_backup.json") },
+                        onClick = { exportLauncher.launch("ext_kernel_snapshot.json") },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !state.isLoading
+                        enabled = !state.isLoading,
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Ekspor Pengaturan (Backup)")
+                        Text("Export Snapshot")
                     }
                     
                     Spacer(modifier = Modifier.height(12.dp))
@@ -94,37 +108,30 @@ fun SettingsScreen(
                     OutlinedButton(
                         onClick = { importLauncher.launch(arrayOf("application/json")) },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !state.isLoading
+                        enabled = !state.isLoading,
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Impor Pengaturan (Restore)")
+                        Text("Import Snapshot")
                     }
                 }
             }
 
             if (state.isLoading) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Memproses file...", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
-                }
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             } else if (state.infoMessage != null) {
-                Spacer(modifier = Modifier.height(24.dp))
                 Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                    shape = RoundedCornerShape(12.dp)
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(state.infoMessage!!, fontSize = 14.sp)
+                        Text(state.infoMessage!!, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }

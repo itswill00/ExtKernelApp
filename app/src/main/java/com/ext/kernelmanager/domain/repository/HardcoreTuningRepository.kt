@@ -12,6 +12,10 @@ interface HardcoreTuningRepository {
     suspend fun setClusterMaxFreq(clusterId: Int, freq: Long): Boolean
     suspend fun getClusterCurrentFreq(clusterId: Int): Long
     suspend fun getClusterCurrentGovernor(clusterId: Int): String
+    
+    // CPU Advanced: Core control
+    suspend fun setCoreOnline(coreId: Int, online: Boolean): Boolean
+    suspend fun isCoreOnline(coreId: Int): Boolean
 
     // GPU
     suspend fun getGpuInfo(): GpuInfo?
@@ -20,30 +24,15 @@ interface HardcoreTuningRepository {
     suspend fun getGpuCurrentFreq(): Long
     suspend fun getGpuCurrentGovernor(): String
 
-    // I/O Scheduler & Queue Tuning
+    // I/O Scheduler
     suspend fun getBlockDevices(): List<String>
     suspend fun getAvailableIoSchedulers(device: String): List<String>
     suspend fun getCurrentIoScheduler(device: String): String
     suspend fun setIoScheduler(device: String, scheduler: String): Boolean
     suspend fun setReadAhead(device: String, kb: Int): Boolean
     suspend fun getReadAhead(device: String): Int
-    suspend fun setIoStats(device: String, enabled: Boolean): Boolean
-    suspend fun setAddRandom(device: String, enabled: Boolean): Boolean
-
-    // Display (KCAL)
-    suspend fun isKcalSupported(): Boolean
-    suspend fun setKcalRgb(r: Int, g: Int, b: Int): Boolean
-    suspend fun setKcalSaturation(valSat: Int): Boolean
-    suspend fun setKcalContrast(valCont: Int): Boolean
-    suspend fun getKcalValues(): Map<String, Int>
-
-    // Sound Control
-    suspend fun isSoundControlSupported(): Boolean
-    suspend fun setSpeakerGain(gain: Int): Boolean
-    suspend fun setHeadphoneGain(gain: Int): Boolean
-    suspend fun getSoundGains(): Map<String, Int>
     
-    // Generic Sysfs Explorer
+    // Advanced Sysfs generic
     suspend fun readSysfs(path: String): String
     suspend fun writeSysfs(path: String, value: String): Boolean
 }

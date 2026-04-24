@@ -31,12 +31,12 @@ class SettingsViewModel @Inject constructor(
             if (success) {
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    infoMessage = "Pengaturan berhasil diekspor. Anda bisa memulihkannya kapan saja."
+                    infoMessage = "Settings exported successfully. You can restore them anytime."
                 )
             } else {
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    infoMessage = "Gagal mengekspor pengaturan. Pastikan memori tidak penuh."
+                    infoMessage = "Failed to export settings. Ensure storage is not full."
                 )
             }
         }
@@ -49,12 +49,12 @@ class SettingsViewModel @Inject constructor(
             if (success) {
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    infoMessage = "Pengaturan berhasil dipulihkan. Perubahan akan langsung aktif."
+                    infoMessage = "Settings restored successfully. Changes will take effect immediately."
                 )
             } else {
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    infoMessage = "Gagal memulihkan pengaturan. File mungkin rusak atau tidak kompatibel."
+                    infoMessage = "Failed to restore settings. The file might be corrupted or incompatible."
                 )
             }
         }

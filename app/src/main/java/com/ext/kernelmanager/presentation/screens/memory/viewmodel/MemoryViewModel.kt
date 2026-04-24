@@ -39,7 +39,7 @@ class MemoryViewModel @Inject constructor(
             if (!zramSupported) {
                 _state.value = _state.value.copy(
                     isZramSupported = false,
-                    infoMessage = "Perangkat ini menggunakan manajemen memori bawaan pabrik yang tidak bisa diubah.",
+                    infoMessage = "This device uses factory default memory management that cannot be modified.",
                     isLoading = false
                 )
                 return@launch
@@ -65,9 +65,9 @@ class MemoryViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true)
             val success = memoryRepository.setZramSizeMb(sizeMb)
             if (success) {
-                _state.value = _state.value.copy(zramSizeMb = sizeMb, infoMessage = "Ukuran memori virtual berhasil diubah.")
+                _state.value = _state.value.copy(zramSizeMb = sizeMb, infoMessage = "Virtual memory size changed successfully.")
             } else {
-                _state.value = _state.value.copy(infoMessage = "Gagal mengubah ukuran memori virtual.")
+                _state.value = _state.value.copy(infoMessage = "Failed to change virtual memory size.")
             }
             _state.value = _state.value.copy(isLoading = false)
         }
@@ -85,9 +85,9 @@ class MemoryViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true)
             val success = memoryRepository.setLmkProfile(profile)
             if (success) {
-                _state.value = _state.value.copy(lmkProfile = profile, infoMessage = "Profil RAM $profile berhasil diterapkan.")
+                _state.value = _state.value.copy(lmkProfile = profile, infoMessage = "RAM profile $profile applied successfully.")
             } else {
-                _state.value = _state.value.copy(infoMessage = "Gagal menerapkan profil RAM.")
+                _state.value = _state.value.copy(infoMessage = "Failed to apply RAM profile.")
             }
             _state.value = _state.value.copy(isLoading = false)
         }

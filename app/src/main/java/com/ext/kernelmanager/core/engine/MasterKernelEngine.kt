@@ -11,8 +11,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * MasterKernelEngine: Implementasi masif untuk manajemen parameter kernel secara absolut.
- * Berisi ribuan baris logika untuk penanganan sysfs, sinkronisasi, dan persistensi.
+ * MasterKernelEngine: Massive implementation for absolute kernel parameter management.
+ * Contains logic for sysfs handling, synchronization, and persistence.
  */
 @Singleton
 class MasterKernelEngine @Inject constructor() {
@@ -20,7 +20,7 @@ class MasterKernelEngine @Inject constructor() {
     private val TAG = "MasterKernelEngine"
 
     /**
-     * Memastikan akses root dengan mencoba eksekusi biner su.
+     * Ensures root access by attempting to execute the su binary.
      */
     suspend fun checkAndRequestRoot(): Boolean = withContext(Dispatchers.IO) {
         Log.d(TAG, "Requesting root access...")
@@ -28,8 +28,8 @@ class MasterKernelEngine @Inject constructor() {
     }
 
     /**
-     * Menangani penulisan sysfs dengan mekanisme retries dan validasi hasil.
-     * Ini krusial untuk mencegah kegagalan penulisan saat sistem sedang sibuk.
+     * Handles sysfs writing with retry mechanism and result validation.
+     * Crucial for preventing write failures when the system is busy.
      */
     suspend fun writeParam(path: String, value: String, retries: Int = 3): Boolean = withContext(Dispatchers.IO) {
         if (!File(path).exists()) {
@@ -43,7 +43,7 @@ class MasterKernelEngine @Inject constructor() {
         while (currentAttempt < retries && !success) {
             val result = RootShellManager.execute("echo $value > $path")
             if (result is RootResult.Success) {
-                // Verifikasi apakah nilai benar-benar tertulis (Post-write validation)
+                // Post-write verification
                 val checkResult = RootShellManager.execute("cat $path")
                 if (checkResult is RootResult.Success && checkResult.output.trim() == value) {
                     success = true
@@ -53,14 +53,14 @@ class MasterKernelEngine @Inject constructor() {
             }
             if (!success) {
                 currentAttempt++
-                delay(100) // Backoff singkat
+                delay(100) // Brief backoff
             }
         }
         success
     }
 
     /**
-     * Membaca parameter sysfs dengan penanganan error yang sangat detail.
+     * Reads sysfs parameters with detailed error handling.
      */
     suspend fun readParam(path: String): String? = withContext(Dispatchers.IO) {
         if (!File(path).exists()) return@withContext null
@@ -69,8 +69,8 @@ class MasterKernelEngine @Inject constructor() {
     }
 
     /**
-     * Logika Batch Apply: Menerapkan puluhan parameter sekaligus.
-     * Digunakan oleh Profil Baterai/Performa.
+     * Batch Apply Logic: Applies multiple parameters at once.
+     * Used by Power/Performance Profiles.
      */
     suspend fun applyBatch(params: Map<String, String>): Int {
         var appliedCount = 0
@@ -81,10 +81,4 @@ class MasterKernelEngine @Inject constructor() {
         }
         return appliedCount
     }
-    
-    // Ribuan baris logika lainnya akan ditambahkan di sini untuk mencakup:
-    // - I/O Queue Scheduler tunables parsing
-    // - CPU Governor specific tunables (hispeed_freq, target_loads, etc)
-    // - Virtual Memory advanced tuning (dirty_background_ratio, vfs_cache_pressure)
-    // - Low Memory Killer minfree calculation logic
 }

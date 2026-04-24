@@ -4,12 +4,12 @@ import kotlinx.coroutines.flow.Flow
 
 interface KernelLogRepository {
     /**
-     * Membaca log dmesg secara real-time.
+     * Reads dmesg logs in real-time.
      */
     fun getKernelLogs(): Flow<String>
 
     /**
-     * Membaca logcat sistem dengan filter tertentu.
+     * Reads system logcat with a specific filter.
      */
     fun getSystemLogs(filter: String = ""): Flow<String>
 }

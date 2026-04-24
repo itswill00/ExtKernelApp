@@ -7,13 +7,13 @@ import java.io.DataOutputStream
 import java.io.InputStreamReader
 
 /**
- * Manager untuk menangani eksekusi perintah shell dengan hak akses Root.
- * Didesain dengan fokus pada keamanan dan penanganan error yang empatik.
+ * RootShellManager: Handles root shell command execution securely.
+ * Focused on safety and human-readable error reporting.
  */
 object RootShellManager {
 
     /**
-     * Memeriksa apakah akses root tersedia dan diizinkan oleh pengguna.
+     * Checks if root access is available and granted by the user.
      */
     suspend fun isRootAvailable(): Boolean = withContext(Dispatchers.IO) {
         try {
@@ -29,8 +29,8 @@ object RootShellManager {
     }
 
     /**
-     * Mengeksekusi perintah shell tunggal atau jamak.
-     * Mengembalikan Result dengan output atau pesan error yang bisa dipahami manusia.
+     * Executes single or multiple shell commands.
+     * Returns a Result containing output or a human-readable error message.
      */
     suspend fun execute(command: String): RootResult = withContext(Dispatchers.IO) {
         try {
@@ -50,10 +50,10 @@ object RootShellManager {
             if (exitCode == 0) {
                 RootResult.Success(output)
             } else {
-                RootResult.Failure("Gagal menyesuaikan sistem: $error")
+                RootResult.Failure("Failed to adjust system: $error")
             }
         } catch (e: Exception) {
-            RootResult.Error("Terjadi kendala saat mengakses sistem. Pastikan izin Root telah diberikan.")
+            RootResult.Error("Encountered an issue while accessing system privileges. Ensure Root permission is granted.")
         }
     }
 }
